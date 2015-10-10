@@ -2,11 +2,11 @@ extern crate handlebars;
 extern crate rustc_serialize;
 extern crate pulldown_cmark;
 
-use renderer::html_handlebars::helpers;
+use super::{helpers, theme};
 use renderer::Renderer;
 use book::MDBook;
 use book::bookitem::BookItem;
-use {utils, theme};
+use utils;
 
 use std::path::{Path, PathBuf};
 use std::fs::File;
@@ -195,6 +195,12 @@ impl Renderer for HtmlHandlebars {
         try!(utils::copy_files_except_ext(book.get_src(), book.get_dest(), true, &["md"]));
 
         Ok(())
+    }
+
+    fn copy_theme(&self, book: &::book::MDBook) -> Result<(), Box<Error>> {
+
+        unimplemented!()
+        
     }
 }
 

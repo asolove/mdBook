@@ -3,7 +3,7 @@ use std::fs::{self, File};
 use std::io::Write;
 use std::error::Error;
 
-use {BookConfig, BookItem, theme, parse, utils};
+use {BookConfig, BookItem, parse, utils};
 use book::BookItems;
 use renderer::{Renderer, HtmlHandlebars};
 use utils::{PathExt, create_path};
@@ -178,6 +178,8 @@ impl MDBook {
 
 
     pub fn copy_theme(&self) -> Result<(), Box<Error>> {
+
+        /*
         debug!("[fn]: copy_theme");
 
         let theme_dir = self.config.get_src().join("theme");
@@ -206,6 +208,9 @@ impl MDBook {
         // highlight.js
         let mut highlight_js = try!(File::create(&theme_dir.join("highlight.js")));
         try!(highlight_js.write_all(theme::HIGHLIGHT_JS));
+        */
+
+        try!(self.renderer.copy_theme(&self));
 
         Ok(())
     }
