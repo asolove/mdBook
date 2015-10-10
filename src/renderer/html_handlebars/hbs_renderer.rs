@@ -151,48 +151,7 @@ impl Renderer for HtmlHandlebars {
         try!(file.write_all(&rendered.into_bytes()));
         output!("[*] Creating print.html ✓");
 
-        // Copy static files (js, css, images, ...)
-
-        debug!("[*] Copy static files");
-        // JavaScript
-        let mut js_file = try!(File::create(book.get_dest().join("book.js")));
-        try!(js_file.write_all(&theme.js));
-
-        // Css
-        let mut css_file = try!(File::create(book.get_dest().join("book.css")));
-        try!(css_file.write_all(&theme.css));
-
-        // JQuery local fallback
-        let mut jquery = try!(File::create(book.get_dest().join("jquery.js")));
-        try!(jquery.write_all(&theme.jquery));
-
-        // Font Awesome local fallback
-        let mut font_awesome = try!(utils::create_file(&book.get_dest().join("_FontAwesome/css/font-awesome").with_extension("css")));
-        try!(font_awesome.write_all(theme::FONT_AWESOME));
-        let mut font_awesome = try!(utils::create_file(&book.get_dest().join("_FontAwesome/fonts/fontawesome-webfont.eot")));
-        try!(font_awesome.write_all(theme::FONT_AWESOME_EOT));
-        let mut font_awesome = try!(utils::create_file(&book.get_dest().join("_FontAwesome/fonts/fontawesome-webfont.svg")));
-        try!(font_awesome.write_all(theme::FONT_AWESOME_SVG));
-        let mut font_awesome = try!(utils::create_file(&book.get_dest().join("_FontAwesome/fonts/fontawesome-webfont.ttf")));
-        try!(font_awesome.write_all(theme::FONT_AWESOME_TTF));
-        let mut font_awesome = try!(utils::create_file(&book.get_dest().join("_FontAwesome/fonts/fontawesome-webfont.woff")));
-        try!(font_awesome.write_all(theme::FONT_AWESOME_WOFF));
-        let mut font_awesome = try!(utils::create_file(&book.get_dest().join("_FontAwesome/fonts/fontawesome-webfont.woff2")));
-        try!(font_awesome.write_all(theme::FONT_AWESOME_WOFF2));
-        let mut font_awesome = try!(utils::create_file(&book.get_dest().join("_FontAwesome/fonts/FontAwesome.ttf")));
-        try!(font_awesome.write_all(theme::FONT_AWESOME_TTF));
-
-        // syntax highlighting
-        let mut highlight_css = try!(File::create(book.get_dest().join("highlight.css")));
-        try!(highlight_css.write_all(&theme.highlight_css));
-        let mut tomorrow_night_css = try!(File::create(book.get_dest().join("tomorrow-night.css")));
-        try!(tomorrow_night_css.write_all(&theme.tomorrow_night_css));
-        let mut highlight_js = try!(File::create(book.get_dest().join("highlight.js")));
-        try!(highlight_js.write_all(&theme.highlight_js));
-
-
-        // Copy all remaining files
-        try!(utils::copy_files_except_ext(book.get_src(), book.get_dest(), true, &["md"]));
+        try!(copy_static_files(book));
 
         Ok(())
     }
@@ -200,8 +159,42 @@ impl Renderer for HtmlHandlebars {
     fn copy_theme(&self, book: &::book::MDBook) -> Result<(), Box<Error>> {
 
         unimplemented!()
-        
+
     }
+}
+
+fn copy_static_files(book: &MDBook) -> Result<(), Box<Error>> {
+
+    // Load theme
+    let theme = theme::Theme::new(book.get_src());
+    let base = book.get_dest();
+
+    // Copy static files (js, css, images, ...)
+    debug!("[*] Copy static files");
+
+    // JavaScript
+    try!(write_file(&base.join("book.js"), &theme.js));
+    // Css
+    try!(write_file(&base.join("book.css"), &theme.css));
+    // JQuery local fallback
+    try!(write_file(&base.join("jquery.js"), &theme.jquery));
+    // Font Awesome local fallback
+    try!(write_file(&base.join("_FontAwesome/css/font-awesome").with_extension("css"), &theme::FONT_AWESOME));
+    try!(write_file(&base.join("_FontAwesome/fonts/fontawesome-webfont.eot"), &theme::FONT_AWESOME_EOT));
+    try!(write_file(&base.join("_FontAwesome/fonts/fontawesome-webfont.svg"), &theme::FONT_AWESOME_SVG));
+    try!(write_file(&base.join("_FontAwesome/fonts/fontawesome-webfont.ttf"), &theme::FONT_AWESOME_TTF));
+    try!(write_file(&base.join("_FontAwesome/fonts/fontawesome-webfont.woff"), &theme::FONT_AWESOME_WOFF));
+    try!(write_file(&base.join("_FontAwesome/fonts/fontawesome-webfont.woff2"), &theme::FONT_AWESOME_WOFF2));
+    try!(write_file(&base.join("_FontAwesome/fonts/FontAwesome.ttf"), &theme::FONT_AWESOME_TTF));
+    // syntax highlighting
+    try!(write_file(&base.join("highlight.css"), &theme.highlight_css));
+    try!(write_file(&base.join("tomorrow-night.css"), &theme.tomorrow_night_css));
+    try!(write_file(&base.join("highlight.js"), &theme.highlight_js));
+
+    // Copy all remaining files
+    try!(utils::copy_files_except_ext(book.get_src(), book.get_dest(), true, &["md"]));
+
+    Ok(())
 }
 
 fn make_data(book: &MDBook) -> Result<BTreeMap<String,Json>, Box<Error>> {
@@ -253,4 +246,10 @@ fn render_html(text: &str) -> String {
     let p = Parser::new(&text);
     html::push_html(&mut s, p);
     s
+}
+
+fn write_file(path: &Path, bytes: &[u8]) -> Result<(), Box<Error>> {
+    let mut file = try!(File::create(path));
+    try!(file.write_all(bytes));
+    Ok(())
 }
