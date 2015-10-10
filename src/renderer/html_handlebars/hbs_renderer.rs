@@ -6,7 +6,7 @@ use super::{helpers, theme};
 use renderer::Renderer;
 use book::MDBook;
 use book::bookitem::BookItem;
-use utils;
+use utils::{self, FileManipulation};
 
 use std::path::{Path, PathBuf};
 use std::fs::File;
@@ -173,23 +173,23 @@ fn copy_static_files(book: &MDBook) -> Result<(), Box<Error>> {
     debug!("[*] Copy static files");
 
     // JavaScript
-    try!(write_file(&base.join("book.js"), &theme.js));
+    try!(base.join("book.js").create_write(&theme.js));
     // Css
-    try!(write_file(&base.join("book.css"), &theme.css));
+    try!(base.join("book.css").create_write(&theme.css));
     // JQuery local fallback
-    try!(write_file(&base.join("jquery.js"), &theme.jquery));
+    try!(base.join("jquery.js").create_write(&theme.jquery));
     // Font Awesome local fallback
-    try!(write_file(&base.join("_FontAwesome/css/font-awesome").with_extension("css"), &theme::FONT_AWESOME));
-    try!(write_file(&base.join("_FontAwesome/fonts/fontawesome-webfont.eot"), &theme::FONT_AWESOME_EOT));
-    try!(write_file(&base.join("_FontAwesome/fonts/fontawesome-webfont.svg"), &theme::FONT_AWESOME_SVG));
-    try!(write_file(&base.join("_FontAwesome/fonts/fontawesome-webfont.ttf"), &theme::FONT_AWESOME_TTF));
-    try!(write_file(&base.join("_FontAwesome/fonts/fontawesome-webfont.woff"), &theme::FONT_AWESOME_WOFF));
-    try!(write_file(&base.join("_FontAwesome/fonts/fontawesome-webfont.woff2"), &theme::FONT_AWESOME_WOFF2));
-    try!(write_file(&base.join("_FontAwesome/fonts/FontAwesome.ttf"), &theme::FONT_AWESOME_TTF));
+    try!(base.join("_FontAwesome/css/font-awesome.css").create_write(&theme::FONT_AWESOME));
+    try!(base.join("_FontAwesome/fonts/fontawesome-webfont.eot").create_write(&theme::FONT_AWESOME_EOT));
+    try!(base.join("_FontAwesome/fonts/fontawesome-webfont.svg").create_write(&theme::FONT_AWESOME_SVG));
+    try!(base.join("_FontAwesome/fonts/fontawesome-webfont.ttf").create_write(&theme::FONT_AWESOME_TTF));
+    try!(base.join("_FontAwesome/fonts/fontawesome-webfont.woff").create_write(&theme::FONT_AWESOME_WOFF));
+    try!(base.join("_FontAwesome/fonts/fontawesome-webfont.woff2").create_write(&theme::FONT_AWESOME_WOFF2));
+    try!(base.join("_FontAwesome/fonts/FontAwesome.ttf").create_write(&theme::FONT_AWESOME_TTF));
     // syntax highlighting
-    try!(write_file(&base.join("highlight.css"), &theme.highlight_css));
-    try!(write_file(&base.join("tomorrow-night.css"), &theme.tomorrow_night_css));
-    try!(write_file(&base.join("highlight.js"), &theme.highlight_js));
+    try!(base.join("highlight.css").create_write(&theme.highlight_css));
+    try!(base.join("tomorrow-night.css").create_write(&theme.tomorrow_night_css));
+    try!(base.join("highlight.js").create_write(&theme.highlight_js));
 
     // Copy all remaining files
     try!(utils::copy_files_except_ext(book.get_src(), book.get_dest(), true, &["md"]));
@@ -246,10 +246,4 @@ fn render_html(text: &str) -> String {
     let p = Parser::new(&text);
     html::push_html(&mut s, p);
     s
-}
-
-fn write_file(path: &Path, bytes: &[u8]) -> Result<(), Box<Error>> {
-    let mut file = try!(File::create(path));
-    try!(file.write_all(bytes));
-    Ok(())
 }

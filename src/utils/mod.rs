@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf, Component};
 use std::error::Error;
 use std::fs::{self, metadata, File};
+use std::io::Write;
 
 /// This is copied from the rust source code until Path_ Ext stabilizes.
 /// You can use it, but be aware that it will be removed when those features go to rust stable
@@ -21,6 +22,20 @@ impl PathExt for Path {
 
     fn is_dir(&self) -> bool {
        metadata(self).map(|s| s.is_dir()).unwrap_or(false)
+    }
+}
+
+/// File manipulations directly from Path
+
+pub trait FileManipulation {
+    fn create_write(&self, bytes: &[u8]) -> Result<(), Box<Error>>;
+}
+
+impl FileManipulation for Path {
+    fn create_write(&self, bytes: &[u8]) -> Result<(), Box<Error>> {
+        let mut file = try!(File::create(self));
+        try!(file.write_all(bytes));
+        Ok(())
     }
 }
 
