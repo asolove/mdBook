@@ -1,8 +1,11 @@
 use std::path::Path;
 use std::fs::File;
-use std::io::Read;
+use std::io::{Read, Write};
+use std::error::Error;
 
-use utils::{PathExt};
+use utils::{self, PathExt, FileManipulation};
+
+use ::book::MDBook;
 
 pub static INDEX: &'static [u8] = include_bytes!("index.hbs");
 pub static CSS: &'static [u8] = include_bytes!("book.css");
@@ -100,4 +103,73 @@ impl Theme {
 
         theme
     }
+}
+
+pub fn copy_static_files(book: &MDBook) -> Result<(), Box<Error>> {
+
+    // Load theme
+    let theme = Theme::new(book.get_src());
+    let base = book.get_dest();
+
+    // Copy static files (js, css, images, ...)
+    debug!("[*] Copy static files");
+
+    // JavaScript
+    try!(base.join("book.js").create_write(&theme.js));
+    // Css
+    try!(base.join("book.css").create_write(&theme.css));
+    // JQuery local fallback
+    try!(base.join("jquery.js").create_write(&theme.jquery));
+    // Font Awesome local fallback
+    try!(base.join("_FontAwesome/css/font-awesome.css").create_write(&FONT_AWESOME));
+    try!(base.join("_FontAwesome/fonts/fontawesome-webfont.eot").create_write(&FONT_AWESOME_EOT));
+    try!(base.join("_FontAwesome/fonts/fontawesome-webfont.svg").create_write(&FONT_AWESOME_SVG));
+    try!(base.join("_FontAwesome/fonts/fontawesome-webfont.ttf").create_write(&FONT_AWESOME_TTF));
+    try!(base.join("_FontAwesome/fonts/fontawesome-webfont.woff").create_write(&FONT_AWESOME_WOFF));
+    try!(base.join("_FontAwesome/fonts/fontawesome-webfont.woff2").create_write(&FONT_AWESOME_WOFF2));
+    try!(base.join("_FontAwesome/fonts/FontAwesome.otf").create_write(&FONT_AWESOME_OTF));
+    // syntax highlighting
+    try!(base.join("highlight.css").create_write(&theme.highlight_css));
+    try!(base.join("tomorrow-night.css").create_write(&theme.tomorrow_night_css));
+    try!(base.join("highlight.js").create_write(&theme.highlight_js));
+
+    // Copy all remaining files
+    try!(utils::copy_files_except_ext(book.get_src(), book.get_dest(), true, &["md"]));
+
+    Ok(())
+}
+
+pub fn copy_theme(book: &::book::MDBook) -> Result<(), Box<Error>> {
+
+    debug!("[fn]: copy_theme");
+
+    let theme_dir = book.get_src().join("theme");
+
+    if !theme_dir.exists() {
+        debug!("[*]: {:?} does not exist, trying to create directory", theme_dir);
+        try!(::std::fs::create_dir(&theme_dir));
+    }
+
+    // index.hbs
+    let mut index = try!(File::create(&theme_dir.join("index.hbs")));
+    try!(index.write_all(INDEX));
+
+    // book.css
+    let mut css = try!(File::create(&theme_dir.join("book.css")));
+    try!(css.write_all(CSS));
+
+    // book.js
+    let mut js = try!(File::create(&theme_dir.join("book.js")));
+    try!(js.write_all(JS));
+
+    // highlight.css
+    let mut highlight_css = try!(File::create(&theme_dir.join("highlight.css")));
+    try!(highlight_css.write_all(HIGHLIGHT_CSS));
+
+    // highlight.js
+    let mut highlight_js = try!(File::create(&theme_dir.join("highlight.js")));
+    try!(highlight_js.write_all(HIGHLIGHT_JS));
+
+    Ok(())
+
 }
