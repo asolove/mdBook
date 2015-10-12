@@ -6,10 +6,10 @@ use super::{helpers, theme};
 use renderer::Renderer;
 use book::MDBook;
 use book::bookitem::BookItem;
-use utils::{self, FileManipulation};
+use utils::{self, PathExt, FileManipulation};
 
 use std::path::{Path, PathBuf};
-use std::fs::File;
+use std::fs::{self, File};
 use std::error::Error;
 use std::io::{self, Read, Write};
 use std::collections::BTreeMap;
@@ -158,7 +158,36 @@ impl Renderer for HtmlHandlebars {
 
     fn copy_theme(&self, book: &::book::MDBook) -> Result<(), Box<Error>> {
 
-        unimplemented!()
+        debug!("[fn]: copy_theme");
+
+        let theme_dir = book.get_src().join("theme");
+
+        if !theme_dir.exists() {
+            debug!("[*]: {:?} does not exist, trying to create directory", theme_dir);
+            try!(fs::create_dir(&theme_dir));
+        }
+
+        // index.hbs
+        let mut index = try!(File::create(&theme_dir.join("index.hbs")));
+        try!(index.write_all(theme::INDEX));
+
+        // book.css
+        let mut css = try!(File::create(&theme_dir.join("book.css")));
+        try!(css.write_all(theme::CSS));
+
+        // book.js
+        let mut js = try!(File::create(&theme_dir.join("book.js")));
+        try!(js.write_all(theme::JS));
+
+        // highlight.css
+        let mut highlight_css = try!(File::create(&theme_dir.join("highlight.css")));
+        try!(highlight_css.write_all(theme::HIGHLIGHT_CSS));
+
+        // highlight.js
+        let mut highlight_js = try!(File::create(&theme_dir.join("highlight.js")));
+        try!(highlight_js.write_all(theme::HIGHLIGHT_JS));
+
+        Ok(())
 
     }
 }
@@ -185,7 +214,7 @@ fn copy_static_files(book: &MDBook) -> Result<(), Box<Error>> {
     try!(base.join("_FontAwesome/fonts/fontawesome-webfont.ttf").create_write(&theme::FONT_AWESOME_TTF));
     try!(base.join("_FontAwesome/fonts/fontawesome-webfont.woff").create_write(&theme::FONT_AWESOME_WOFF));
     try!(base.join("_FontAwesome/fonts/fontawesome-webfont.woff2").create_write(&theme::FONT_AWESOME_WOFF2));
-    try!(base.join("_FontAwesome/fonts/FontAwesome.ttf").create_write(&theme::FONT_AWESOME_TTF));
+    try!(base.join("_FontAwesome/fonts/FontAwesome.otf").create_write(&theme::FONT_AWESOME_OTF));
     // syntax highlighting
     try!(base.join("highlight.css").create_write(&theme.highlight_css));
     try!(base.join("tomorrow-night.css").create_write(&theme.tomorrow_night_css));

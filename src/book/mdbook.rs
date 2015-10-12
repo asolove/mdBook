@@ -178,40 +178,7 @@ impl MDBook {
 
 
     pub fn copy_theme(&self) -> Result<(), Box<Error>> {
-
-        /*
-        debug!("[fn]: copy_theme");
-
-        let theme_dir = self.config.get_src().join("theme");
-
-        if !theme_dir.exists() {
-            debug!("[*]: {:?} does not exist, trying to create directory", theme_dir);
-            try!(fs::create_dir(&theme_dir));
-        }
-
-        // index.hbs
-        let mut index = try!(File::create(&theme_dir.join("index.hbs")));
-        try!(index.write_all(theme::INDEX));
-
-        // book.css
-        let mut css = try!(File::create(&theme_dir.join("book.css")));
-        try!(css.write_all(theme::CSS));
-
-        // book.js
-        let mut js = try!(File::create(&theme_dir.join("book.js")));
-        try!(js.write_all(theme::JS));
-
-        // highlight.css
-        let mut highlight_css = try!(File::create(&theme_dir.join("highlight.css")));
-        try!(highlight_css.write_all(theme::HIGHLIGHT_CSS));
-
-        // highlight.js
-        let mut highlight_js = try!(File::create(&theme_dir.join("highlight.js")));
-        try!(highlight_js.write_all(theme::HIGHLIGHT_JS));
-        */
-
         try!(self.renderer.copy_theme(&self));
-
         Ok(())
     }
 
