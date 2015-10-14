@@ -22,6 +22,8 @@ pub fn previous(c: &Context, _h: &Helper, r: &Handlebars, rc: &mut RenderContext
         .to_string()
         .replace("\"", "");
 
+    // There is no previous if path == "index.html"
+    if current == "index.md" { return Ok(()) }
 
     debug!("[*]: Decode chapters from JSON");
     // Decode json format
@@ -90,8 +92,7 @@ pub fn previous(c: &Context, _h: &Helper, r: &Handlebars, rc: &mut RenderContext
                     }
 
                     break;
-                }
-                else {
+                } else {
                     previous = Some(item.clone());
                 }
             },
@@ -116,7 +117,7 @@ pub fn next(c: &Context, _h: &Helper, r: &Handlebars, rc: &mut RenderContext) ->
     // param is the key of value you want to display
     let chapters = c.navigate(rc.get_path(), "chapters");
 
-    let current = c.navigate(rc.get_path(), "path")
+    let mut current = c.navigate(rc.get_path(), "path")
         .to_string()
         .replace("\"", "");
 
@@ -128,8 +129,12 @@ pub fn next(c: &Context, _h: &Helper, r: &Handlebars, rc: &mut RenderContext) ->
     };
     let mut previous: Option<BTreeMap<String, String>> = None;
 
+    if current == "index.md" {
+        current = decoded[0].get("path").unwrap().to_owned();
+    }
+
     debug!("[*]: Search for current Chapter");
-    // Search for current chapter and return previous entry
+    // Search for current chapter and return next entry
     for item in decoded {
 
         match item.get("path") {

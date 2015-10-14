@@ -33,7 +33,7 @@ pub trait FileManipulation {
 
 impl FileManipulation for Path {
     fn create_write(&self, bytes: &[u8]) -> Result<(), Box<Error>> {
-        let mut file = try!(File::create(self));
+        let mut file = try!(create_file(self));
         try!(file.write_all(bytes));
         Ok(())
     }

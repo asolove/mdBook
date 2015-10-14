@@ -58,6 +58,7 @@ pub fn extend_context(context: &BTreeMap<String,Json>, content: &str, path: &Pat
     let mut context = context.clone();
 
     context.insert("content".to_owned(), content.to_json());
+    context.insert("path".to_owned(), path.to_str().expect("in extend_context: path should exist").to_json());
     context.insert("path_to_root".to_owned(), utils::path_to_root(path).to_json());
 
     Ok(context)
