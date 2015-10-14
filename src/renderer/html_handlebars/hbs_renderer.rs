@@ -66,13 +66,9 @@ impl Renderer for HtmlHandlebars {
 
                         let path = book.get_src().join(&ch.path);
 
-                        debug!("[*]: Opening file: {:?}", path);
                         let mut f = try!(File::open(&path));
                         let mut content: String = String::new();
-
-                        debug!("[*]: Reading file");
                         try!(f.read_to_string(&mut content));
-
 
                         // Render markdown using the pulldown-cmark crate
                         content = render_html(&content);
@@ -82,14 +78,10 @@ impl Renderer for HtmlHandlebars {
                         // Extend the common context (above) to include chapter specific info
                         let chapter_context = try!(context::extend_context(&context, &content, &ch.path));
 
-
                         // Rendere the handlebars template with the data
-                        debug!("[*]: Render template");
                         let rendered = try!(handlebars.render("index", &chapter_context));
 
-
                         // Write to file
-                        debug!("[*]: Create file {:?}", &book.get_dest().join(&ch.path).with_extension("html"));
                         let mut file = try!(utils::create_file(&book.get_dest().join(&ch.path).with_extension("html")));
                         output!("[*] Creating {:?} ✓", &book.get_dest().join(&ch.path).with_extension("html"));
 
@@ -100,21 +92,17 @@ impl Renderer for HtmlHandlebars {
                         if index {
                             debug!("[*]: index.html");
 
-                            let mut index_file = try!(File::create(book.get_dest().join("index.html")));
-                            let mut content = String::new();
-                            let _source = try!(File::open(book.get_dest().join(&ch.path.with_extension("html"))))
-                                                        .read_to_string(&mut content);
+                            // Extend the common context (above) to include chapter specific info
+                            let index_context = try!(context::extend_context(&context, &content, Path::new("index.md")));
 
-                            // This could cause a problem when someone displays code containing <base href=...>
-                            // on the front page, however this case should be very very rare...
-                            content = content.lines().filter(|line| !line.contains("<base href=")).collect();
+                            // Rendere the handlebars template with the data
+                            let rendered = try!(handlebars.render("index", &index_context));
 
-                            try!(index_file.write_all(content.as_bytes()));
+                            // Write to file
+                            let mut file = try!(utils::create_file(&book.get_dest().join("index.html")));
+                            try!(file.write_all(&rendered.into_bytes()));
 
-                            output!(
-                                "[*] Creating index.html from {:?} ✓",
-                                book.get_dest().join(&ch.path.with_extension("html"))
-                                );
+                            output!("[*] Creating index.html from {:?} ✓", book.get_dest().join(&ch.path.with_extension("html")));
                             index = false;
                         }
                     }
@@ -127,7 +115,6 @@ impl Renderer for HtmlHandlebars {
         let print_context = try!(context::extend_context(&context, &print_content, &Path::new("print.md")));
 
         // Rendere the handlebars template with the data
-        debug!("[*]: Render template");
         let rendered = try!(handlebars.render("index", &print_context));
         let mut file = try!(utils::create_file(&book.get_dest().join("print").with_extension("html")));
         try!(file.write_all(&rendered.into_bytes()));
